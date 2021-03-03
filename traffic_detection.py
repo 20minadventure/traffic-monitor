@@ -1,0 +1,2 @@
+class TrafficDetector:
+    pass
