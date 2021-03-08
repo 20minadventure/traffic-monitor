@@ -1,3 +1,4 @@
+import cv2
 import pytest
 
 from traffic_detection import TrafficDetector
@@ -15,3 +16,9 @@ def test_dry_run_prediction(example_clip_path):
     assert hasattr(td, 'confs')
     assert hasattr(td, 'boxes')
     assert hasattr(td, 'class_names')
+
+
+def test_model_loading(example_clip_path):
+    td = TrafficDetector(example_clip_path)
+
+    td.model is cv2.dnn_DetectionModel
