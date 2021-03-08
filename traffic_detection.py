@@ -17,3 +17,13 @@ class TrafficDetector:
             model.setInputParams(size=(512, 512), scale=1/255)
             self._model = model
         return self._model
+
+    def iter_clip_frames(self):
+        clip = cv2.VideoCapture(str(self.path))
+        while True:
+            success, frame = clip.read()
+            if success:
+                yield frame
+            else:
+                break
+        clip.release()
