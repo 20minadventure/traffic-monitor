@@ -22,13 +22,17 @@ class TrafficDetector:
             self._model = model
         return self._model
 
-    def iter_clip_frames(self):
+    def iter_clip_frames(self, count=None, step=1):
         clip = cv2.VideoCapture(str(self.path))
         clip = cv2.VideoCapture(str(path))
-        while True:
-            success, frame = clip.read()
-            if success:
-                yield frame
+        success, frame = clip.read()
+        frame_nr = 0
+        while success:
+            frame_nr += 1
+            if count is None or frame_nr <= count:
+                if frame_nr % step == 0:
+                    yield frame
             else:
                 break
+            success, frame = clip.read()
         clip.release()
