@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 from pathlib import Path
 
 
@@ -7,9 +8,9 @@ class TrafficDetector:
         self.path = path
 
         self._model = None
-        self.confs = None
-        self.boxes = None
-        self.class_names = None
+        self.confs = []
+        self.boxes = []
+        self.class_names = []
 
     @property
     def model(self):
@@ -36,3 +37,50 @@ class TrafficDetector:
                 break
             success, frame = clip.read()
         clip.release()
+
+    def detect_vehicles(self, frames):
+        CONFIDENCE_THRESHOLD = 0.3
+        NMS_THRESHOLD = 0.4
+        for img in frames:
+            boxes = np.zeros((0, 4), dtype=np.int32)
+            ids = np.zeros((0, 1), dtype=np.int32)
+            # for im, coord in patch_generator(img2[208:, ...], padding=128):
+            for im, coord in [(img[-512:, :512, :], (0, 208))]:
+                prediction = self.model.detect(im, CONFIDENCE_THRESHOLD, NMS_THRESHOLD)
+                shift = coord[0], coord[1], 0, 0
+                boxes = np.concatenate([boxes, prediction[2] + np.array(shift)])
+                ids = np.concatenate([ids, prediction[0]])
+
+            self.boxes.append(boxes)
+            self.class_names.append(ids)
+
+    def draw_boxes(self, frames):
+        for img, boxes, class_names in zip(frames, self.boxes, self.class_names):
+            for (x, y, w, h), id in zip(boxes, class_names):
+                start_point = (x, y)
+                end_point = (x + w, y + h)
+                if id == 2:
+                    cv2.rectangle(img, start_point, end_point, color=(0, 0, 255), thickness=2)
+                elif id == 7:
+                    cv2.rectangle(img, start_point, end_point, color=(255, 0, 0), thickness=2)
+                elif id == 5:
+                    cv2.rectangle(img, start_point, end_point, color=(0, 255, 0), thickness=2)
+            yield img
+
+
+
+if __name__ == '__main__':
+    from pathlib import Path
+    from utils import show, rgb
+
+    path = Path('stream_data', 'streamlink_20210205_075003.mp4')
+    td = TrafficDetector(path)
+    frames = td.iter_clip_frames(count=42, step=2)
+    td.detect_vehicles(frames)
+    frames = td.iter_clip_frames(count=42, step=2)
+    boxes = td.draw_boxes(frames)
+
+    pred_imgs = lambda x: rgb(next(boxes))
+    import moviepy.editor as mpy
+    clip = mpy.VideoClip(pred_imgs, duration=2)  # fps * duration < len(frames)
+    clip.write_videofile("circle3.mp4", fps=10)

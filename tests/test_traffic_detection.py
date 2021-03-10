@@ -11,7 +11,7 @@ def example_clip_path(tmp_path):
 
 def test_dry_run_prediction(example_clip_path):
     td = TrafficDetector(example_clip_path)
-    td.detect_vehicles()
+    td.detect_vehicles([])
 
     assert hasattr(td, 'confs')
     assert hasattr(td, 'boxes')
