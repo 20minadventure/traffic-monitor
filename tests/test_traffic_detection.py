@@ -1,6 +1,7 @@
 import cv2
 import pytest
 from pathlib import Path
+from copy import deepcopy
 
 from traffic_monitor.detection import TrafficDetector
 from traffic_monitor.detection import Coco, CocoItem
@@ -9,6 +10,14 @@ from traffic_monitor.detection import Coco, CocoItem
 @pytest.fixture
 def dummy_clip_path(tmp_path):
     return tmp_path / 'dummy_clip.mp4'
+
+@pytest.fixture
+def example_boxes_path(tmp_path):
+    return tmp_path / 'boxes.json'
+
+@pytest.fixture
+def example_class_names_path(tmp_path):
+    return tmp_path / 'class_names.mp4'  
 
 
 @pytest.fixture

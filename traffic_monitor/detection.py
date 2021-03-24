@@ -5,7 +5,7 @@ from pathlib import Path
 from dataclasses import dataclass, asdict
 from collections import namedtuple
 from tqdm import tqdm
-
+import json
 
 CocoItem = namedtuple(
     'CocoItem',
@@ -188,3 +188,20 @@ class TrafficDetector:
                     cv2.rectangle(img, pt0, pt1, coco_item.color, 1)
                     cv2.rectangle(img, pb0, pb1, coco_item.color, -1)
             yield img
+    def dump_detections(self, boxes_path='boxes.json', class_names_path="class_names.json"):
+        with open(boxes_path, 'w') as boxes_file:
+            serializable = list(map(lambda x: x.tolist(), self.boxes))
+            json.dump(serializable, boxes_file)
+        
+        with open(class_names_path, 'w') as class_names_file:
+            serializable = list(map(lambda x: x.tolist(), self.class_names))
+            json.dump(serializable, class_names_file)
+
+    def load_detections(self, boxes_path='boxes.json', class_names_path="class_names.json"):
+        with open(boxes_path, 'r') as boxes_file:
+            raw = json.load(boxes_file)
+            self.boxes = list(map(np.array, raw))
+
+        with open(class_names_path, 'r') as class_names_file:
+            raw = json.load(class_names_file)
+            self.class_names = list(map(np.array, raw))     
