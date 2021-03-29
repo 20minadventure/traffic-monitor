@@ -58,3 +58,15 @@ def test_patch_generation_2d(patch_generator_kwargs, patches_out):
     ]
     
     assert patches == patches_out
+
+
+def test_patch_generation_3d():
+    image = np.arange(8).reshape(2, 4).astype(np.uint8)
+    image = image[..., None].repeat(3, axis=2)
+
+    patches_shape = [
+        patch.shape
+        for patch, _ in patch_generator(image, 2)
+    ]
+    
+    assert patches_shape == [(2, 2, 3) for _ in range(2)]
