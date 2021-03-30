@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from traffic_detection import patch_generator
+from traffic_monitor.detection import patch_generator
 
 
 @pytest.mark.parametrize(

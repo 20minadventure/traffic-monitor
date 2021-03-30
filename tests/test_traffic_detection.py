@@ -1,7 +1,7 @@
 import cv2
 import pytest
 
-from traffic_detection import TrafficDetector
+from traffic_monitor.detection import TrafficDetector
 
 
 @pytest.fixture
