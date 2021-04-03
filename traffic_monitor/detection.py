@@ -77,9 +77,11 @@ def patch_generator(image, patch_size, patches=None, min_padding=0,
 
             
 class TrafficDetector:
-    def __init__(self, path):
+    def __init__(self, path, count=None, step=1):
         self.path = path
         self._model = None
+        self.count = count
+        self.step = step
 
     @property
     def model(self):
@@ -92,14 +94,14 @@ class TrafficDetector:
             self._model = model
         return self._model
 
-    def iter_clip_frames(self, count=None, step=1):
+    def iter_clip_frames(self):
         clip = cv2.VideoCapture(str(self.path))
         success, frame = clip.read()
         frame_nr = 0
         while success:
             frame_nr += 1
-            if count is None or frame_nr <= count:
-                if frame_nr % step == 0:
+            if self.count is None or frame_nr <= self.count:
+                if frame_nr % self.step == 0:
                     yield frame
             else:
                 break
