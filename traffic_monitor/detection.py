@@ -1,6 +1,37 @@
 import cv2
 import numpy as np
+from math import ceil
 from pathlib import Path
+from dataclasses import dataclass, asdict
+from collections import namedtuple
+
+
+CocoItem = namedtuple(
+    'CocoItem',
+    ['name', 'id', 'color'],
+    defaults=((0, 0, 0), )
+)
+
+
+@dataclass(init=False, frozen=True)
+class Coco:
+    PERSON: CocoItem = CocoItem('person', 0)
+    BICYCLE: CocoItem = CocoItem('bicycle', 1)
+    CAR: CocoItem = CocoItem('car', 2, (0, 0, 255))
+    MOTORBIKE: CocoItem = CocoItem('motorbike', 3)
+    AEROPLANE: CocoItem = CocoItem('aeroplane', 4)
+    BUS: CocoItem = CocoItem('bus', 5, (0, 255, 0))
+    TRAIN: CocoItem = CocoItem('train', 6)
+    TRUCK: CocoItem = CocoItem('truck', 7, (255, 0, 0))
+    BOAT: CocoItem = CocoItem('boat', 8)
+    TRAFFIC_LIGHT: CocoItem = CocoItem('traffic light', 9)
+    FIRE_HYDRANT: CocoItem = CocoItem('fire hydrant', 10)
+    STOP_SIGN: CocoItem = CocoItem('stop sign', 11)
+
+    def get_by_id(self, coco_id):
+        for name, coco_item in asdict(self).items():
+            if coco_id == coco_item.id:
+                return coco_item
 
 
 def patch_generator(image, patch_size, patches=None, min_padding=0,
