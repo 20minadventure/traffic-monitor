@@ -96,14 +96,14 @@ class TrafficDetector:
 
     def iter_clip_frames(self):
         clip = cv2.VideoCapture(str(self.path))
-        success, frame = clip.read()
         frame_nr = 0
+        success, frame = clip.read()
         while success:
-            frame_nr += 1
-            if self.count is None or frame_nr <= self.count:
+            if self.count is None or frame_nr < self.count:
                 if frame_nr % self.step == 0:
-                    yield frame
+                    yield frame_nr, frame
             else:
                 break
+            frame_nr = int(clip.get(cv2.CAP_PROP_POS_FRAMES))
             success, frame = clip.read()
         clip.release()
