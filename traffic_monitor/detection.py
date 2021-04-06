@@ -95,6 +95,8 @@ class TrafficDetector:
         return self._model
 
     def iter_clip_frames(self):
+        if not self.path.is_file():
+            raise FileNotFoundError
         clip = cv2.VideoCapture(str(self.path))
         frame_nr = 0
         success, frame = clip.read()
