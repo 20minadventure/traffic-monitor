@@ -82,6 +82,8 @@ class TrafficDetector:
         self._model = None
         self.count = count
         self.step = step
+        self._fps = None
+        self._frame_count = None
 
     @property
     def model(self):
@@ -93,6 +95,32 @@ class TrafficDetector:
             model.setInputParams(size=(512, 512), scale=1/255)
             self._model = model
         return self._model
+
+    @property
+    def fps(self):
+        if self._fps is None:
+            clip = cv2.VideoCapture(str(self.path))
+            success, _ = clip.read()
+            while success:
+                success, _ = clip.read()
+                msec = clip.get(cv2.CAP_PROP_POS_MSEC)
+                if round(msec) >= 1000:
+                    frame_nr = int(clip.get(cv2.CAP_PROP_POS_FRAMES)) - 1
+                    self._fps = frame_nr
+                    break
+            clip.release()
+        return self._fps
+
+    @property
+    def frame_count(self):
+        if self._frame_count is None:
+            clip = cv2.VideoCapture(str(self.path))
+            buggy_frame_count = clip.get(cv2.CAP_PROP_FRAME_COUNT)
+            buggy_fps = clip.get(cv2.CAP_PROP_FPS)
+            clip.release()
+            self._frame_count = round(buggy_frame_count / buggy_fps * self.fps)
+        return self._frame_count
+
 
     def iter_clip_frames(self):
         if not self.path.is_file():
