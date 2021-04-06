@@ -41,3 +41,15 @@ def test_iter_clip_frames(real_clip_path, count, step):
 
     assert frames == list(range(0, count, step))
 
+
+def test_fps_retrieving(real_clip_path):
+    td = TrafficDetector(real_clip_path)
+
+    assert td.fps == 30
+
+
+def test_total_frame_count_retrieving(real_clip_path):
+    td = TrafficDetector(real_clip_path)
+
+    assert td.frame_count == 331
+
