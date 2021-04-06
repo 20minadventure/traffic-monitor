@@ -53,3 +53,13 @@ def test_total_frame_count_retrieving(real_clip_path):
 
     assert td.frame_count == 331
 
+
+def test_detection(real_clip_path):
+    td = TrafficDetector(real_clip_path, count=1)
+
+    td.detect_vehicles()
+
+    assert len(td.classes_ids) == 1
+    assert len(td.scores) == 1
+    assert len(td.boxes) == 1
+    assert len(td.classes_ids[0])
