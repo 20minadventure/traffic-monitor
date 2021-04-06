@@ -84,6 +84,12 @@ class TrafficDetector:
         self.step = step
         self._fps = None
         self._frame_count = None
+        self.classes_ids = []
+        self.scores = []
+        self.boxes = []
+
+        self.CONFIDENCE_THRESHOLD = 0.3
+        self.NMS_THRESHOLD = 0.6
 
     @property
     def model(self):
@@ -137,3 +143,24 @@ class TrafficDetector:
             frame_nr = int(clip.get(cv2.CAP_PROP_POS_FRAMES))
             success, frame = clip.read()
         clip.release()
+
+    def detect_vehicles(self):
+        frames = self.iter_clip_frames()
+        for frame, img in frames:
+            ids = np.zeros((0, 1), dtype=np.int32)
+            boxes = np.zeros((0, 4), dtype=np.int32)
+            scores = np.zeros((0, 1), dtype=np.float32)
+            for im, coord in patch_generator(img, 512, start_point=(0, 208)):
+                prediction = self.model.detect(
+                    im,
+                    self.CONFIDENCE_THRESHOLD,
+                    self.NMS_THRESHOLD
+                )
+                shift = coord[0], coord[1], 0, 0
+                ids = np.concatenate([ids, prediction[0]])
+                scores = np.concatenate([scores, prediction[1]])
+                boxes = np.concatenate([boxes, prediction[2] + np.array(shift)])
+            self.classes_ids.append(ids)
+            self.boxes.append(boxes)
+            self.scores.append(scores)
+
