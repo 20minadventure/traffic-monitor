@@ -28,11 +28,14 @@ class Coco:
     TRAFFIC_LIGHT: CocoItem = CocoItem('traffic light', 9)
     FIRE_HYDRANT: CocoItem = CocoItem('fire hydrant', 10)
     STOP_SIGN: CocoItem = CocoItem('stop sign', 11)
+    OTHER: CocoItem = CocoItem('other', -1, (255, 255, 255))
 
     def get_by_id(self, coco_id):
         for name, coco_item in asdict(self).items():
             if coco_id == coco_item.id:
                 return coco_item
+        else:
+            return self.OTHER
 
 
 def patch_generator(image, patch_size, patches=None, min_padding=0,
