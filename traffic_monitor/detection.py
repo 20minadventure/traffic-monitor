@@ -164,3 +164,16 @@ class TrafficDetector:
             self.boxes.append(boxes)
             self.scores.append(scores)
 
+    def draw_boxes(self):
+        frames = self.iter_clip_frames()
+        results_iter = zip(frames, self.classes_ids, self.boxes, self.scores)
+        for (fr, img), fr_classes, fr_boxes, fr_scores in results_iter:
+            instances_iter = zip(fr_boxes, fr_classes, fr_scores)
+            for (x, y, w, h), class_id, score in instances_iter:
+                pt0, pt1 = (x, y), (x + w, y + h)
+                coco_item = Coco().get_by_id(class_id)
+                if coco_item.name in ['car', 'truck', 'bus', 'train']:
+                    pb0, pb1 = (x + 1, y + int(h * score)), (x + 4, y + h)
+                    cv2.rectangle(img, pt0, pt1, coco_item.color, 1)
+                    cv2.rectangle(img, pb0, pb1, coco_item.color, -1)
+            yield img
