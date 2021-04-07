@@ -3,6 +3,7 @@ import pytest
 from pathlib import Path
 
 from traffic_monitor.detection import TrafficDetector
+from traffic_monitor.detection import Coco, CocoItem
 
 
 @pytest.fixture
@@ -19,6 +20,24 @@ def test_model_loading(dummy_clip_path):
     td = TrafficDetector(dummy_clip_path)
 
     assert isinstance(td.model, cv2.dnn_DetectionModel)
+
+
+def test_coco_items():
+    coco = Coco()
+
+    assert coco.CAR.name == 'car'
+    assert coco.CAR.id == 2
+    assert isinstance(coco.CAR.color, tuple)
+    assert coco.STOP_SIGN == CocoItem('stop sign', 11)
+
+
+def test_getting_coco_by_id():
+    coco = Coco()
+    other = coco.get_by_id(99)
+
+    assert coco.CAR == coco.get_by_id(2)
+    assert CocoItem('stop sign', 11) == coco.get_by_id(11)
+    assert coco.OTHER == coco.get_by_id(99)
 
 
 def test_rasing_error_when_clip_doesnt_exist(dummy_clip_path):
