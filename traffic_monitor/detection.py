@@ -4,6 +4,7 @@ from math import ceil
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from collections import namedtuple
+from tqdm import tqdm
 
 
 CocoItem = namedtuple(
@@ -146,7 +147,9 @@ class TrafficDetector:
 
     def detect_vehicles(self):
         frames = self.iter_clip_frames()
-        for frame, img in frames:
+        n = self.frame_count if self.count is None else self.count
+        n = ceil(n / self.step)
+        for frame, img in tqdm(frames, total=n):
             ids = np.zeros((0, 1), dtype=np.int32)
             boxes = np.zeros((0, 4), dtype=np.int32)
             scores = np.zeros((0, 1), dtype=np.float32)
