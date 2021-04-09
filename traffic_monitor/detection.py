@@ -107,10 +107,14 @@ class TrafficDetector:
             net = cv2.dnn.readNet(str(nn_weights_path), str(nn_cfg_path))
             net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
             net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+            self.net = net
             model = cv2.dnn_DetectionModel(net)
             model.setInputParams(size=(512, 512), scale=1/255)
             self._model = model
         return self._model
+    
+    def download_weights():
+        pass
 
     @property
     def fps(self):
@@ -178,6 +182,7 @@ class TrafficDetector:
             self.classes_ids.append(ids)
             self.boxes.append(boxes)
             self.scores.append(scores)
+        tqdm._instances.clear()
 
     def draw_boxes(self):
         coco = Coco()
