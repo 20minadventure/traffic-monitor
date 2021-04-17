@@ -66,16 +66,20 @@ def test_iter_clip_frames(real_clip_path, count, step):
     assert frames == list(range(0, count, step))
 
 
-def test_fps_retrieving(real_clip_path):
-    td = TrafficDetector(real_clip_path)
+def test_fps_retrieving(real_clip_path, black_clip_path):
+    real_td = TrafficDetector(real_clip_path)
+    black_td = TrafficDetector(black_clip_path)
 
-    assert td.fps == 30
+    assert real_td.fps == 30
+    assert black_td.fps is None
 
 
-def test_total_frame_count_retrieving(real_clip_path):
-    td = TrafficDetector(real_clip_path)
+def test_total_frame_count_retrieving(real_clip_path, black_clip_path):
+    real_td = TrafficDetector(real_clip_path)
+    black_td = TrafficDetector(black_clip_path)
 
-    assert td.frame_count == 331
+    assert real_td.frame_count == 331
+    assert black_td.frame_count is None
 
 
 def test_detection(real_clip_path):
