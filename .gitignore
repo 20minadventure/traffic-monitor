@@ -1,3 +1,6 @@
 stream_data/
 __pycache__/
 .vscode/settings.json
+Traffic_Monitor.egg-info/
+dist/
+build/
