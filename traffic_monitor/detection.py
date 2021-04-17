@@ -125,7 +125,7 @@ class TrafficDetector:
 
     @property
     def frame_count(self):
-        if self._frame_count is None:
+        if self._frame_count is None and self.fps is not None:
             clip = cv2.VideoCapture(str(self.path))
             buggy_frame_count = clip.get(cv2.CAP_PROP_FRAME_COUNT)
             buggy_fps = clip.get(cv2.CAP_PROP_FPS)
