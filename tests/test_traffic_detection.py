@@ -12,6 +12,11 @@ def dummy_clip_path(tmp_path):
 
 
 @pytest.fixture
+def black_clip_path():
+    return Path('tests', 'data', 'black_clip.mp4')
+
+
+@pytest.fixture
 def real_clip_path():
     return Path('stream_data', 'streamlink_20210303_145004.mp4')
 
