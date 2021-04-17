@@ -101,6 +101,8 @@ class TrafficDetector:
             nn_weights_path = Path('yolov4', 'yolov4.weights')
             nn_cfg_path = Path('yolov4', 'yolov4.cfg')
             net = cv2.dnn.readNet(str(nn_weights_path), str(nn_cfg_path))
+            net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+            net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
             model = cv2.dnn_DetectionModel(net)
             model.setInputParams(size=(512, 512), scale=1/255)
             self._model = model
