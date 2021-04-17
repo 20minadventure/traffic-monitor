@@ -158,12 +158,15 @@ class TrafficDetector:
             ids = np.zeros((0, 1), dtype=np.int32)
             boxes = np.zeros((0, 4), dtype=np.int32)
             scores = np.zeros((0, 1), dtype=np.float32)
+            empty_prediction = (ids, scores, boxes)
             for im, coord in patch_generator(img, 512, start_point=(0, 208)):
                 prediction = self.model.detect(
                     im,
                     self.CONFIDENCE_THRESHOLD,
                     self.NMS_THRESHOLD
                 )
+                if len(prediction[0]) == 0:
+                    prediction = empty_prediction
                 shift = coord[0], coord[1], 0, 0
                 ids = np.concatenate([ids, prediction[0]])
                 scores = np.concatenate([scores, prediction[1]])
