@@ -6,6 +6,8 @@ from dataclasses import dataclass, asdict
 from collections import namedtuple
 from tqdm import tqdm
 import json
+import pickle
+import bz2
 
 CocoItem = namedtuple(
     'CocoItem',
@@ -188,20 +190,52 @@ class TrafficDetector:
                     cv2.rectangle(img, pt0, pt1, coco_item.color, 1)
                     cv2.rectangle(img, pb0, pb1, coco_item.color, -1)
             yield img
-    def dump_detections(self, boxes_path='boxes.json', class_names_path="class_names.json"):
-        with open(boxes_path, 'w') as boxes_file:
-            serializable = list(map(lambda x: x.tolist(), self.boxes))
-            json.dump(serializable, boxes_file)
-        
-        with open(class_names_path, 'w') as class_names_file:
-            serializable = list(map(lambda x: x.tolist(), self.class_names))
-            json.dump(serializable, class_names_file)
 
-    def load_detections(self, boxes_path='boxes.json', class_names_path="class_names.json"):
-        with open(boxes_path, 'r') as boxes_file:
-            raw = json.load(boxes_file)
-            self.boxes = list(map(np.array, raw))
 
-        with open(class_names_path, 'r') as class_names_file:
-            raw = json.load(class_names_file)
-            self.class_names = list(map(np.array, raw))     
+    def dump_detections(self, path=Path('example_dump'), format='pbz2'):
+
+        if format == "json":
+            data = {
+                'boxes': list(map(lambda x: x.tolist(), self.boxes)),
+                'scores': list(map(lambda x: x.tolist(), self.scores)),
+                'classes_ids': list(map(lambda x: x.tolist(), self.classes_ids))
+                }
+
+            with open(str(path) + '.json', 'w') as file:
+                json.dump(data, file)
+
+        elif format == "pbz2":
+            data = {
+                'boxes': self.boxes,
+                'scores': self.scores,
+                'classes_ids': self.classes_ids
+                }
+
+            with bz2.BZ2File(str(path) + '.pbz2', 'w') as file:
+                pickle.dump(data, file)
+
+        else:
+            raise ValueError
+
+
+    def load_detections(self, path):
+        ext = ''.join(Path(path).suffix)
+
+        if ext == ".json":
+            with open(path, 'r') as file:
+                data = json.load(file)
+            
+            self.boxes = list(map(np.array, data['boxes']))
+            self.scores = list(map(np.array, data['scores']))
+            self.classes_ids = list(map(np.array, data['classes_ids']))
+
+        elif ext == ".pbz2":
+            with bz2.BZ2File(path, 'rb') as file:
+                data = pickle.load(file)
+
+            self.boxes = data['boxes']
+            self.scores = data['scores']
+            self.classes_ids = data['classes_ids'] 
+
+        else:
+            raise ValueError
