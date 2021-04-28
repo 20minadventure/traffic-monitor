@@ -1,5 +1,7 @@
 import cv2
+import numpy as np
 import pytest
+from copy import deepcopy
 from pathlib import Path
 from copy import deepcopy
 
@@ -12,8 +14,8 @@ def dummy_clip_path(tmp_path):
     return tmp_path / 'dummy_clip.mp4'
 
 @pytest.fixture
-def example_boxes_path(tmp_path):
-    return tmp_path / 'boxes.json'
+def example_dump_path(tmp_path):
+    return tmp_path / 'dump'
 
 @pytest.fixture
 def example_class_names_path(tmp_path):
@@ -111,3 +113,58 @@ def test_detection_on_black_clip(black_clip_path):
     assert len(td.scores) == 1
     assert len(td.boxes) == 1
     assert len(td.classes_ids[0]) == 0
+
+def test_predictions_saving_to_json(real_clip_path, example_dump_path):
+    td = TrafficDetector(real_clip_path, count=3)
+    td.detect_vehicles()
+
+    boxes = deepcopy(td.boxes)
+    classes_ids = deepcopy(td.classes_ids)
+    scores = deepcopy(td.scores)
+
+    td.dump_detections(example_dump_path, format='json')
+    td.load_detections(str(example_dump_path) + '.json')
+
+    assert all([isinstance(box, np.ndarray)] for box in td.boxes)
+    assert len(boxes) == len(td.boxes)
+    assert all([np.array_equal(old_box, new_box) for old_box, new_box in zip(boxes, td.boxes)])
+
+    assert all([isinstance(class_id, np.ndarray)] for class_id in td.classes_ids)
+    assert len(classes_ids) == len(td.classes_ids)
+    assert all(
+        [np.array_equal(old_class, new_class) for old_class, new_class in zip(classes_ids, td.classes_ids)]
+        )  
+
+    assert all([isinstance(score, np.ndarray)] for score in td.scores)
+    assert len(scores) == len(td.scores)
+    assert all(
+        [np.array_equal(old_score, new_score) for old_score, new_score in zip(scores, td.scores)]
+        )   
+
+def test_predictions_saving_to_pickle(real_clip_path, example_dump_path):
+    td = TrafficDetector(real_clip_path, count=3)
+    td.detect_vehicles()
+
+    boxes = deepcopy(td.boxes)
+    classes_ids = deepcopy(td.classes_ids)
+    scores = deepcopy(td.scores)
+
+    td.dump_detections(example_dump_path, format='pbz2')
+    td.load_detections(str(example_dump_path) + '.pbz2')
+
+    assert all([isinstance(box, np.ndarray)] for box in td.boxes)
+    assert len(boxes) == len(td.boxes)
+    assert all([np.array_equal(old_box, new_box) for old_box, new_box in zip(boxes, td.boxes)])
+
+    assert all([isinstance(class_id, np.ndarray)] for class_id in td.classes_ids)
+    assert len(classes_ids) == len(td.classes_ids)
+    assert all(
+        [np.array_equal(old_class, new_class) for old_class, new_class in zip(classes_ids, td.classes_ids)]
+        )  
+
+    assert all([isinstance(score, np.ndarray)] for score in td.scores)
+    assert len(scores) == len(td.scores)
+    assert all(
+        [np.array_equal(old_score, new_score) for old_score, new_score in zip(scores, td.scores)]
+        )    
+
