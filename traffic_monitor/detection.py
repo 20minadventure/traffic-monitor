@@ -8,12 +8,42 @@ from tqdm import tqdm
 import json
 import pickle
 import bz2
+from multiprocessing import Pool
+
 
 CocoItem = namedtuple(
     'CocoItem',
     ['name', 'id', 'color'],
     defaults=((0, 0, 0), )
 )
+
+nn_weights_path = Path('yolov4', 'yolov4.weights')
+nn_cfg_path = Path('yolov4', 'yolov4.cfg')
+net = cv2.dnn.readNet(str(nn_weights_path), str(nn_cfg_path))
+net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+model = cv2.dnn_DetectionModel(net)
+model.setInputParams(size=(512, 512), scale=1/255)
+
+
+def det(frame_t):
+    frame, img = frame_t
+    ids = np.zeros((0, 1), dtype=np.int32)
+    boxes = np.zeros((0, 4), dtype=np.int32)
+    scores = np.zeros((0, 1), dtype=np.float32)
+    empty_prediction = (ids, scores, boxes)
+    for im, coord in patch_generator(img, 512, start_point=(0, 208)):
+        prediction = model.detect(
+            im, 0.3, 0.6
+        )
+        if len(prediction[0]) == 0:
+            prediction = empty_prediction
+        shift = coord[0], coord[1], 0, 0
+        ids = np.concatenate([ids, prediction[0]])
+        scores = np.concatenate([scores, prediction[1]])
+        boxes = np.concatenate([boxes, prediction[2] + np.array(shift)])
+
+    return ids, boxes, scores
 
 
 @dataclass(init=False, frozen=True)
@@ -162,26 +192,14 @@ class TrafficDetector:
         frames = self.iter_clip_frames()
         n = self.frame_count if self.count is None else self.count
         n = ceil(n / self.step)
-        for frame, img in tqdm(frames, total=n):
-            ids = np.zeros((0, 1), dtype=np.int32)
-            boxes = np.zeros((0, 4), dtype=np.int32)
-            scores = np.zeros((0, 1), dtype=np.float32)
-            empty_prediction = (ids, scores, boxes)
-            for im, coord in patch_generator(img, 512, start_point=(0, 208)):
-                prediction = self.model.detect(
-                    im,
-                    self.CONFIDENCE_THRESHOLD,
-                    self.NMS_THRESHOLD
-                )
-                if len(prediction[0]) == 0:
-                    prediction = empty_prediction
-                shift = coord[0], coord[1], 0, 0
-                ids = np.concatenate([ids, prediction[0]])
-                scores = np.concatenate([scores, prediction[1]])
-                boxes = np.concatenate([boxes, prediction[2] + np.array(shift)])
-            self.classes_ids.append(ids)
-            self.boxes.append(boxes)
-            self.scores.append(scores)
+        
+        with Pool(4) as pool:
+            out = pool.imap(det, frames)
+            
+            for ids, boxes, scores in tqdm(out, total=n):
+                self.classes_ids.append(ids)
+                self.boxes.append(boxes)
+                self.scores.append(scores)
         tqdm._instances.clear()
 
     def draw_boxes(self):
