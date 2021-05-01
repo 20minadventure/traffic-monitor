@@ -32,12 +32,14 @@ class Coco:
     STOP_SIGN: CocoItem = CocoItem('stop sign', 11)
     OTHER: CocoItem = CocoItem('other', -1, (255, 255, 255))
 
-    def get_by_id(self, coco_id):
+    def __init__(self):
+        by_id_dict = {}
         for name, coco_item in asdict(self).items():
-            if coco_id == coco_item.id:
-                return coco_item
-        else:
-            return self.OTHER
+            by_id_dict[coco_item.id] = coco_item
+        object.__setattr__(self, 'by_id_dict', by_id_dict)
+
+    def get_by_id(self, coco_id):
+        return self.by_id_dict.get(coco_id, self.OTHER)
 
 
 def patch_generator(image, patch_size, patches=None, min_padding=0,
