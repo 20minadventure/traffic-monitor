@@ -32,12 +32,14 @@ class Coco:
     STOP_SIGN: CocoItem = CocoItem('stop sign', 11)
     OTHER: CocoItem = CocoItem('other', -1, (255, 255, 255))
 
-    def get_by_id(self, coco_id):
+    def __init__(self):
+        by_id_dict = {}
         for name, coco_item in asdict(self).items():
-            if coco_id == coco_item.id:
-                return coco_item
-        else:
-            return self.OTHER
+            by_id_dict[coco_item.id] = coco_item
+        object.__setattr__(self, 'by_id_dict', by_id_dict)
+
+    def get_by_id(self, coco_id):
+        return self.by_id_dict.get(coco_id, self.OTHER)
 
 
 def patch_generator(image, patch_size, patches=None, min_padding=0,
@@ -178,13 +180,14 @@ class TrafficDetector:
             self.scores.append(scores)
 
     def draw_boxes(self):
+        coco = Coco()
         frames = self.iter_clip_frames()
         results_iter = zip(frames, self.classes_ids, self.boxes, self.scores)
         for (fr, img), fr_classes, fr_boxes, fr_scores in results_iter:
             instances_iter = zip(fr_boxes, fr_classes, fr_scores)
             for (x, y, w, h), class_id, score in instances_iter:
                 pt0, pt1 = (x, y), (x + w, y + h)
-                coco_item = Coco().get_by_id(class_id)
+                coco_item = coco.get_by_id(class_id.item())
                 if coco_item.name in ['car', 'truck', 'bus', 'train']:
                     pb0, pb1 = (x + 1, y + int(h * score)), (x + 4, y + h)
                     cv2.rectangle(img, pt0, pt1, coco_item.color, 1)
