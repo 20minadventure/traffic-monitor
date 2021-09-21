@@ -39,8 +39,8 @@ def det(frame_t):
         if len(prediction[0]) == 0:
             prediction = empty_prediction
         shift = coord[0], coord[1], 0, 0
-        ids = np.concatenate([ids, prediction[0]])
-        scores = np.concatenate([scores, prediction[1]])
+        ids = np.concatenate([ids, prediction[0][:, None]])
+        scores = np.concatenate([scores, prediction[1][:, None]])
         boxes = np.concatenate([boxes, prediction[2] + np.array(shift)])
 
     return ids, boxes, scores
